@@ -1,10 +1,6 @@
-from database import engine
+from database import engine, Base
+from models import Customer, Product, Seller, Order
 
-try:
-    connection = engine.connect()
-    print("Database connected successfully!")
-    connection.close()
+Base.metadata.create_all(bind=engine)
 
-except Exception as e:
-    print("Connection failed!")
-    print(e)
+print("Tables created successfully!")
