@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from database import SessionLocal
-from schemas import CustomerCreate
+from schemas import CustomerCreate, OrderCreate, ProductCreate
 
 app = FastAPI()
 
@@ -204,4 +204,109 @@ def create_customer(customer: CustomerCreate):
 
     return {
         "message": "Customer created successfully"
+    }
+
+@app.post("/orders")
+def create_order(order: OrderCreate):
+
+    db = SessionLocal()
+
+    db.execute(
+        text("""
+            INSERT INTO orders
+            (
+                user_id,
+                product_id,
+                seller_id,
+                purchase_date,
+                shipping_time_days,
+                is_returned,
+                delivery_status
+            )
+
+            VALUES
+            (
+                :user_id,
+                :product_id,
+                :seller_id,
+                :purchase_date,
+                :shipping_time_days,
+                :is_returned,
+                :delivery_status
+            )
+        """),
+        {
+            "user_id": order.user_id,
+            "product_id": order.product_id,
+            "seller_id": order.seller_id,
+            "purchase_date": order.purchase_date,
+            "shipping_time_days": order.shipping_time_days,
+            "is_returned": order.is_returned,
+            "delivery_status": order.delivery_status
+        }
+    )
+
+    db.commit()
+
+    db.close()
+
+    return {
+        "message": "Order created successfully"
+    }
+
+@app.post("/products")
+def create_product(product: ProductCreate):
+
+    db = SessionLocal()
+
+    db.execute(
+        text("""
+            INSERT INTO products
+            (
+                product_id,
+                category,
+                subcategory,
+                brand,
+                price,
+                discount,
+                final_price,
+                rating,
+                review_count,
+                stock
+            )
+
+            VALUES
+            (
+                :product_id,
+                :category,
+                :subcategory,
+                :brand,
+                :price,
+                :discount,
+                :final_price,
+                :rating,
+                :review_count,
+                :stock
+            )
+        """),
+        {
+            "product_id": product.product_id,
+            "category": product.category,
+            "subcategory": product.subcategory,
+            "brand": product.brand,
+            "price": product.price,
+            "discount": product.discount,
+            "final_price": product.final_price,
+            "rating": product.rating,
+            "review_count": product.review_count,
+            "stock": product.stock
+        }
+    )
+
+    db.commit()
+
+    db.close()
+
+    return {
+        "message": "Product created successfully"
     }
