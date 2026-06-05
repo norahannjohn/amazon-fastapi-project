@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from database import SessionLocal
-from schemas import CustomerCreate, OrderCreate, ProductCreate
+from schemas import CustomerCreate, OrderCreate, ProductCreate, SellerCreate
 
 app = FastAPI()
 
@@ -176,6 +176,143 @@ def get_customer_purchases(user_id: str):
     db.close()
 
     return result
+@app.get("/sellers")
+def get_sellers():
+
+    db = SessionLocal()
+
+    sellers = db.execute(
+        text("""
+            SELECT *
+            FROM sellers
+            LIMIT 10
+        """)
+    )
+
+    result = []
+
+    for row in sellers:
+        result.append({
+            "seller_id": row.seller_id,
+            "seller_rating": row.seller_rating
+        })
+
+    db.close()
+
+    return result
+@app.get("/sellers/{seller_id}")
+def get_seller(seller_id: str):
+
+    db = SessionLocal()
+
+    seller = db.execute(
+        text("""
+            SELECT *
+            FROM sellers
+            WHERE seller_id = :seller_id
+        """),
+        {"seller_id": seller_id}
+    ).fetchone()
+
+    db.close()
+
+    if not seller:
+        return {"message": "Seller not found"}
+
+    return {
+        "seller_id": seller.seller_id,
+        "seller_rating": seller.seller_rating
+    }
+@app.get("/products/{product_id}")
+def get_product(product_id: str):
+
+    db = SessionLocal()
+
+    product = db.execute(
+        text("""
+            SELECT *
+            FROM products
+            WHERE product_id = :product_id
+        """),
+        {"product_id": product_id}
+    ).fetchone()
+
+    db.close()
+
+    if not product:
+        return {"message": "Product not found"}
+
+    return {
+        "product_id": product.product_id,
+        "category": product.category,
+        "subcategory": product.subcategory,
+        "brand": product.brand,
+        "price": product.price,
+        "discount": product.discount,
+        "final_price": product.final_price,
+        "rating": product.rating,
+        "review_count": product.review_count,
+        "stock": product.stock
+    }
+@app.get("/orders")
+def get_orders():
+
+    db = SessionLocal()
+
+    orders = db.execute(
+        text("""
+            SELECT *
+            FROM orders
+            LIMIT 10
+        """)
+    )
+
+    result = []
+
+    for row in orders:
+        result.append({
+            "order_id": row.order_id,
+            "user_id": row.user_id,
+            "product_id": row.product_id,
+            "seller_id": row.seller_id,
+            "purchase_date": row.purchase_date,
+            "shipping_time_days": row.shipping_time_days,
+            "is_returned": row.is_returned,
+            "delivery_status": row.delivery_status
+        })
+
+    db.close()
+
+    return result
+@app.get("/orders/{order_id}")
+def get_order(order_id: int):
+
+    db = SessionLocal()
+
+    order = db.execute(
+        text("""
+            SELECT *
+            FROM orders
+            WHERE order_id = :order_id
+        """),
+        {"order_id": order_id}
+    ).fetchone()
+
+    db.close()
+
+    if not order:
+        return {"message": "Order not found"}
+
+    return {
+        "order_id": order.order_id,
+        "user_id": order.user_id,
+        "product_id": order.product_id,
+        "seller_id": order.seller_id,
+        "purchase_date": order.purchase_date,
+        "shipping_time_days": order.shipping_time_days,
+        "is_returned": order.is_returned,
+        "delivery_status": order.delivery_status
+    }
 
 @app.post("/customers")
 def create_customer(customer: CustomerCreate):
@@ -309,4 +446,36 @@ def create_product(product: ProductCreate):
 
     return {
         "message": "Product created successfully"
+    }
+@app.post("/sellers")
+def create_seller(seller: SellerCreate):
+
+    db = SessionLocal()
+
+    db.execute(
+        text("""
+            INSERT INTO sellers
+            (
+                seller_id,
+                seller_rating
+            )
+
+            VALUES
+            (
+                :seller_id,
+                :seller_rating
+            )
+        """),
+        {
+            "seller_id": seller.seller_id,
+            "seller_rating": seller.seller_rating
+        }
+    )
+
+    db.commit()
+
+    db.close()
+
+    return {
+        "message": "Seller created successfully"
     }

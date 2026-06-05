@@ -32,3 +32,7 @@ class ProductCreate(BaseModel):
     review_count: int
 
     stock: int
+
+class SellerCreate(BaseModel):
+    seller_id: str
+    seller_rating: float
