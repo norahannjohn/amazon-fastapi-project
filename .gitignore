@@ -1,4 +1,18 @@
+# Virtual Environment
 .venv/
+
+# Environment Variables
 .env
+
+# Python Cache
 __pycache__/
+*.pyc
+
+# Dataset
 amazon_ecommerce_1M.csv
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
