@@ -1,5 +1,6 @@
 from database import Base
 from sqlalchemy import Column, String, Float, Integer, ForeignKey
+from sqlalchemy.orm import relationship
 
 
 class Customer(Base):
@@ -9,6 +10,9 @@ class Customer(Base):
     location = Column(String)
     device = Column(String)
     payment_method = Column(String)
+
+    orders = relationship("Order", back_populates="customer")
+
 
 class Product(Base):
     __tablename__ = "products"
@@ -27,11 +31,13 @@ class Product(Base):
 
     stock = Column(Integer)
 
+
 class Seller(Base):
     __tablename__ = "sellers"
 
     seller_id = Column(String, primary_key=True)
     seller_rating = Column(Float)
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -47,3 +53,9 @@ class Order(Base):
 
     is_returned = Column(String)
     delivery_status = Column(String)
+
+    customer = relationship("Customer", back_populates="orders")
+
+    product = relationship("Product")
+
+    seller = relationship("Seller")

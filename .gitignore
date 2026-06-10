@@ -1,2 +1,4 @@
-amazon_ecommerce_1M.csv
+.venv/
+.env
 __pycache__/
+amazon_ecommerce_1M.csv

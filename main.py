@@ -1,8 +1,9 @@
-from fastapi import FastAPI
-from sqlalchemy import text
+from fastapi import FastAPI, HTTPException, status
+
 
 from database import SessionLocal
 from schemas import CustomerCreate, OrderCreate, ProductCreate, SellerCreate
+from models import Customer, Product, Seller, Order
 
 app = FastAPI()
 
@@ -17,416 +18,283 @@ def get_customers():
 
     db = SessionLocal()
 
-    customers = db.execute(
-        text("""
-            SELECT *
-            FROM customers
-            LIMIT 10
-        """)
-    )
+    try:
 
-    result = []
+        customers = db.query(Customer).limit(10).all()
 
-    for row in customers:
-        result.append({
-            "user_id": row.user_id,
-            "location": row.location,
-            "device": row.device,
-            "payment_method": row.payment_method
-        })
+        result = []
 
-    db.close()
+        for customer in customers:
+            result.append(
+                {
+                    "user_id": customer.user_id,
+                    "location": customer.location,
+                    "device": customer.device,
+                    "payment_method": customer.payment_method,
+                }
+            )
 
-    return result
+        return result
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
 
 @app.get("/products")
 def get_products():
 
     db = SessionLocal()
 
-    products = db.execute(
-        text("""
-            SELECT *
-            FROM products
-            LIMIT 10
-        """)
-    )
+    try:
 
-    result = []
+        products = db.query(Product).limit(10).all()
 
-    for row in products:
-        result.append({
-            "product_id": row.product_id,
-            "category": row.category,
-            "subcategory": row.subcategory,
-            "brand": row.brand,
-            "price": row.price,
-            "discount": row.discount,
-            "final_price": row.final_price,
-            "rating": row.rating,
-            "review_count": row.review_count,
-            "stock": row.stock
-        })
+        result = []
 
-    db.close()
+        for row in products:
+            result.append(
+                {
+                    "product_id": row.product_id,
+                    "category": row.category,
+                    "subcategory": row.subcategory,
+                    "brand": row.brand,
+                    "price": row.price,
+                    "discount": row.discount,
+                    "final_price": row.final_price,
+                    "rating": row.rating,
+                    "review_count": row.review_count,
+                    "stock": row.stock,
+                }
+            )
 
-    return result
+        return result
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
+
+    finally:
+        db.close()
+
 
 @app.get("/customers/{user_id}")
 def get_customer(user_id: str):
 
     db = SessionLocal()
 
-    customer = db.execute(
-        text("""
-            SELECT *
-            FROM customers
-            WHERE user_id = :user_id
-        """),
-        {"user_id": user_id}
-    ).fetchone()
+    try:
+        customer = db.query(Customer).filter(Customer.user_id == user_id).first()
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Customer not found",
+            )
 
-    db.close()
+        return {
+            "user_id": customer.user_id,
+            "location": customer.location,
+            "device": customer.device,
+            "payment_method": customer.payment_method,
+        }
 
-    if not customer:
-        return {"message": "Customer not found"}
+    except HTTPException:
+        raise
 
-    return {
-        "user_id": customer.user_id,
-        "location": customer.location,
-        "device": customer.device,
-        "payment_method": customer.payment_method
-    }
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
 
 @app.get("/customers/{user_id}/orders")
 def get_customer_orders(user_id: str):
 
     db = SessionLocal()
 
-    orders = db.execute(
-        text("""
-            SELECT *
-            FROM orders
-            WHERE user_id = :user_id
-        """),
-        {"user_id": user_id}
-    )
+    try:
 
-    result = []
+        customer = db.query(Customer).filter(Customer.user_id == user_id).first()
 
-    for row in orders:
-        result.append({
-            "order_id": row.order_id,
-            "user_id": row.user_id,
-            "product_id": row.product_id,
-            "seller_id": row.seller_id,
-            "purchase_date": str(row.purchase_date),
-            "shipping_time_days": row.shipping_time_days,
-            "is_returned": row.is_returned,
-            "delivery_status": row.delivery_status
-        })
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Customer not found",
+            )
 
-    db.close()
+        result = []
 
-    return result
+        for order in customer.orders:
+            result.append(
+                {
+                    "order_id": order.order_id,
+                    "user_id": order.user_id,
+                    "product_id": order.product_id,
+                    "seller_id": order.seller_id,
+                    "purchase_date": str(order.purchase_date),
+                    "shipping_time_days": order.shipping_time_days,
+                    "is_returned": order.is_returned,
+                    "delivery_status": order.delivery_status,
+                }
+            )
+
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
 
 @app.get("/customers/{user_id}/purchases")
 def get_customer_purchases(user_id: str):
 
     db = SessionLocal()
 
-    purchases = db.execute(
-        text("""
-            SELECT
-                o.order_id,
-                o.purchase_date,
-                o.delivery_status,
+    try:
 
-                p.product_id,
-                p.brand,
-                p.category,
-                p.final_price,
-                p.rating
+        customer = db.query(Customer).filter(Customer.user_id == user_id).first()
 
-            FROM orders o
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Customer not found",
+            )
 
-            JOIN products p
-            ON o.product_id = p.product_id
+        result = []
 
-            WHERE o.user_id = :user_id
-        """),
-        {"user_id": user_id}
-    )
+        for order in customer.orders:
+            result.append(
+                {
+                    "order_id": order.order_id,
+                    "purchase_date": str(order.purchase_date),
+                    "delivery_status": order.delivery_status,
+                    "product_id": order.product.product_id,
+                    "brand": order.product.brand,
+                    "category": order.product.category,
+                    "final_price": order.product.final_price,
+                    "rating": order.product.rating,
+                }
+            )
 
-    result = []
+        return result
 
-    for row in purchases:
-        result.append({
-            "order_id": row.order_id,
-            "purchase_date": str(row.purchase_date),
-            "delivery_status": row.delivery_status,
+    except HTTPException:
+        raise
 
-            "product_id": row.product_id,
-            "brand": row.brand,
-            "category": row.category,
-            "final_price": row.final_price,
-            "rating": row.rating
-        })
+    except Exception:
 
-    db.close()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
 
-    return result
+    finally:
+        db.close()
+
+
 @app.get("/sellers")
 def get_sellers():
 
     db = SessionLocal()
 
-    sellers = db.execute(
-        text("""
-            SELECT *
-            FROM sellers
-            LIMIT 10
-        """)
-    )
+    try:
 
-    result = []
+        sellers = db.query(Seller).limit(10).all()
 
-    for row in sellers:
-        result.append({
-            "seller_id": row.seller_id,
-            "seller_rating": row.seller_rating
-        })
+        result = []
 
-    db.close()
+        for seller in sellers:
+            result.append(
+                {
+                    "seller_id": seller.seller_id,
+                    "seller_rating": seller.seller_rating,
+                }
+            )
 
-    return result
+        return result
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
 @app.get("/sellers/{seller_id}")
 def get_seller(seller_id: str):
 
     db = SessionLocal()
 
-    seller = db.execute(
-        text("""
-            SELECT *
-            FROM sellers
-            WHERE seller_id = :seller_id
-        """),
-        {"seller_id": seller_id}
-    ).fetchone()
+    try:
 
-    db.close()
+        seller = db.query(Seller).filter(Seller.seller_id == seller_id).first()
 
-    if not seller:
-        return {"message": "Seller not found"}
+        if not seller:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Seller not found",
+            )
 
-    return {
-        "seller_id": seller.seller_id,
-        "seller_rating": seller.seller_rating
-    }
+        return {
+            "seller_id": seller.seller_id,
+            "seller_rating": seller.seller_rating,
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
 @app.get("/products/{product_id}")
 def get_product(product_id: str):
 
     db = SessionLocal()
 
-    product = db.execute(
-        text("""
-            SELECT *
-            FROM products
-            WHERE product_id = :product_id
-        """),
-        {"product_id": product_id}
-    ).fetchone()
+    try:
 
-    db.close()
+        product = db.query(Product).filter(Product.product_id == product_id).first()
 
-    if not product:
-        return {"message": "Product not found"}
-
-    return {
-        "product_id": product.product_id,
-        "category": product.category,
-        "subcategory": product.subcategory,
-        "brand": product.brand,
-        "price": product.price,
-        "discount": product.discount,
-        "final_price": product.final_price,
-        "rating": product.rating,
-        "review_count": product.review_count,
-        "stock": product.stock
-    }
-@app.get("/orders")
-def get_orders():
-
-    db = SessionLocal()
-
-    orders = db.execute(
-        text("""
-            SELECT *
-            FROM orders
-            LIMIT 10
-        """)
-    )
-
-    result = []
-
-    for row in orders:
-        result.append({
-            "order_id": row.order_id,
-            "user_id": row.user_id,
-            "product_id": row.product_id,
-            "seller_id": row.seller_id,
-            "purchase_date": row.purchase_date,
-            "shipping_time_days": row.shipping_time_days,
-            "is_returned": row.is_returned,
-            "delivery_status": row.delivery_status
-        })
-
-    db.close()
-
-    return result
-@app.get("/orders/{order_id}")
-def get_order(order_id: int):
-
-    db = SessionLocal()
-
-    order = db.execute(
-        text("""
-            SELECT *
-            FROM orders
-            WHERE order_id = :order_id
-        """),
-        {"order_id": order_id}
-    ).fetchone()
-
-    db.close()
-
-    if not order:
-        return {"message": "Order not found"}
-
-    return {
-        "order_id": order.order_id,
-        "user_id": order.user_id,
-        "product_id": order.product_id,
-        "seller_id": order.seller_id,
-        "purchase_date": order.purchase_date,
-        "shipping_time_days": order.shipping_time_days,
-        "is_returned": order.is_returned,
-        "delivery_status": order.delivery_status
-    }
-
-@app.post("/customers")
-def create_customer(customer: CustomerCreate):
-
-    db = SessionLocal()
-
-    db.execute(
-        text("""
-            INSERT INTO customers
-            (user_id, location, device, payment_method)
-
-            VALUES
-            (:user_id, :location, :device, :payment_method)
-        """),
-        {
-            "user_id": customer.user_id,
-            "location": customer.location,
-            "device": customer.device,
-            "payment_method": customer.payment_method
-        }
-    )
-
-    db.commit()
-
-    db.close()
-
-    return {
-        "message": "Customer created successfully"
-    }
-
-@app.post("/orders")
-def create_order(order: OrderCreate):
-
-    db = SessionLocal()
-
-    db.execute(
-        text("""
-            INSERT INTO orders
-            (
-                user_id,
-                product_id,
-                seller_id,
-                purchase_date,
-                shipping_time_days,
-                is_returned,
-                delivery_status
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found",
             )
 
-            VALUES
-            (
-                :user_id,
-                :product_id,
-                :seller_id,
-                :purchase_date,
-                :shipping_time_days,
-                :is_returned,
-                :delivery_status
-            )
-        """),
-        {
-            "user_id": order.user_id,
-            "product_id": order.product_id,
-            "seller_id": order.seller_id,
-            "purchase_date": order.purchase_date,
-            "shipping_time_days": order.shipping_time_days,
-            "is_returned": order.is_returned,
-            "delivery_status": order.delivery_status
-        }
-    )
-
-    db.commit()
-
-    db.close()
-
-    return {
-        "message": "Order created successfully"
-    }
-
-@app.post("/products")
-def create_product(product: ProductCreate):
-
-    db = SessionLocal()
-
-    db.execute(
-        text("""
-            INSERT INTO products
-            (
-                product_id,
-                category,
-                subcategory,
-                brand,
-                price,
-                discount,
-                final_price,
-                rating,
-                review_count,
-                stock
-            )
-
-            VALUES
-            (
-                :product_id,
-                :category,
-                :subcategory,
-                :brand,
-                :price,
-                :discount,
-                :final_price,
-                :rating,
-                :review_count,
-                :stock
-            )
-        """),
-        {
+        return {
             "product_id": product.product_id,
             "category": product.category,
             "subcategory": product.subcategory,
@@ -436,46 +304,252 @@ def create_product(product: ProductCreate):
             "final_price": product.final_price,
             "rating": product.rating,
             "review_count": product.review_count,
-            "stock": product.stock
+            "stock": product.stock,
         }
-    )
 
-    db.commit()
+    except HTTPException:
+        raise
 
-    db.close()
+    except Exception:
 
-    return {
-        "message": "Product created successfully"
-    }
-@app.post("/sellers")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
+@app.get("/orders")
+def get_orders():
+
+    db = SessionLocal()
+
+    try:
+
+        orders = db.query(Order).limit(10).all()
+
+        result = []
+
+        for order in orders:
+            result.append(
+                {
+                    "order_id": order.order_id,
+                    "user_id": order.user_id,
+                    "product_id": order.product_id,
+                    "seller_id": order.seller_id,
+                    "purchase_date": order.purchase_date,
+                    "shipping_time_days": order.shipping_time_days,
+                    "is_returned": order.is_returned,
+                    "delivery_status": order.delivery_status,
+                }
+            )
+
+        return result
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
+@app.get("/orders/{order_id}")
+def get_order(order_id: int):
+
+    db = SessionLocal()
+
+    try:
+
+        order = db.query(Order).filter(Order.order_id == order_id).first()
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found",
+            )
+
+        return {
+            "order_id": order.order_id,
+            "user_id": order.user_id,
+            "product_id": order.product_id,
+            "seller_id": order.seller_id,
+            "purchase_date": order.purchase_date,
+            "shipping_time_days": order.shipping_time_days,
+            "is_returned": order.is_returned,
+            "delivery_status": order.delivery_status,
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
+@app.post("/customers", status_code=status.HTTP_201_CREATED)
+def create_customer(customer: CustomerCreate):
+
+    db = SessionLocal()
+
+    try:
+
+        new_customer = Customer(
+            user_id=customer.user_id,
+            location=customer.location,
+            device=customer.device,
+            payment_method=customer.payment_method,
+        )
+
+        db.add(new_customer)
+
+        db.commit()
+
+        return {"message": "Customer created successfully"}
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
+@app.post(
+    "/orders",
+    status_code=status.HTTP_201_CREATED,
+)
+def create_order(order: OrderCreate):
+
+    db = SessionLocal()
+
+    try:
+
+        new_order = Order(
+            user_id=order.user_id,
+            product_id=order.product_id,
+            seller_id=order.seller_id,
+            purchase_date=order.purchase_date,
+            shipping_time_days=order.shipping_time_days,
+            is_returned=order.is_returned,
+            delivery_status=order.delivery_status,
+        )
+
+        db.add(new_order)
+
+        db.commit()
+
+        return {"message": "Order created successfully"}
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
+@app.post(
+    "/products",
+    status_code=status.HTTP_201_CREATED,
+)
+def create_product(product: ProductCreate):
+
+    db = SessionLocal()
+
+    try:
+
+        new_product = Product(
+            product_id=product.product_id,
+            category=product.category,
+            subcategory=product.subcategory,
+            brand=product.brand,
+            price=product.price,
+            discount=product.discount,
+            final_price=product.final_price,
+            rating=product.rating,
+            review_count=product.review_count,
+            stock=product.stock,
+        )
+
+        db.add(new_product)
+
+        db.commit()
+
+        return {"message": "Product created successfully"}
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
+
+
+@app.post(
+    "/sellers",
+    status_code=status.HTTP_201_CREATED,
+)
 def create_seller(seller: SellerCreate):
 
     db = SessionLocal()
 
-    db.execute(
-        text("""
-            INSERT INTO sellers
-            (
-                seller_id,
-                seller_rating
-            )
+    try:
 
-            VALUES
-            (
-                :seller_id,
-                :seller_rating
-            )
-        """),
-        {
-            "seller_id": seller.seller_id,
-            "seller_rating": seller.seller_rating
-        }
-    )
+        new_seller = Seller(
+            seller_id=seller.seller_id,
+            seller_rating=seller.seller_rating,
+        )
 
-    db.commit()
+        db.add(new_seller)
 
-    db.close()
+        db.commit()
 
-    return {
-        "message": "Seller created successfully"
-    }
+        return {"message": "Seller created successfully"}
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    finally:
+        db.close()
