@@ -1,9 +1,9 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-DATABASE_URL = "postgresql://postgres:root123@localhost:5432/amazon_ecommerce_db"
+from app.settings import settings
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(settings.DATABASE_URL)
 
 print("Loading dataset...")
 
@@ -20,7 +20,7 @@ products = df[
         "final_price",
         "rating",
         "review_count",
-        "stock"
+        "stock",
     ]
 ]
 
@@ -28,11 +28,6 @@ products = products.drop_duplicates(subset=["product_id"])
 
 print("Unique products:", len(products))
 
-products.head(1000).to_sql(
-    "products",
-    engine,
-    if_exists="append",
-    index=False
-)
+products.head(1000).to_sql("products", engine, if_exists="append", index=False)
 
 print("1000 products inserted successfully!")
