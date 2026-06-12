@@ -13,19 +13,6 @@ from app.services.customer_service import (
 
 
 def get_customers_handler(db: Session):
-    """
-    Retrieve the list of customers.
-
-    Args:
-        db (Session): Active SQLAlchemy database session.
-
-    Returns:
-        list: List of customer objects.
-
-    Raises:
-        HTTPException: If an internal server error occurs.
-    """
-
     try:
         return get_customers_service(db)
 

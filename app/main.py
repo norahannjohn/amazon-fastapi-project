@@ -15,10 +15,4 @@ app.include_router(order_router)
 
 @app.get("/")
 def home():
-    """
-    Home endpoint to verify that the API is running.
-
-    Returns:
-        dict: Success message indicating the API is running.
-    """
     return {"message": "Amazon E-commerce API is running"}
