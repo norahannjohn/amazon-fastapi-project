@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 
 from app.database import SessionLocal
 from app.schemas import OrderCreate
@@ -20,6 +20,18 @@ def get_orders():
     try:
         return get_orders_handler(db)
 
+    except RuntimeError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
     finally:
         db.close()
 
@@ -32,17 +44,47 @@ def get_order(order_id: int):
     try:
         return get_order_handler(db, order_id)
 
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+    except RuntimeError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
     finally:
         db.close()
 
 
-@router.post("/orders", status_code=201)
+@router.post("/orders", status_code=status.HTTP_201_CREATED)
 def create_order(order: OrderCreate):
 
     db = SessionLocal()
 
     try:
         return create_order_handler(db, order)
+
+    except RuntimeError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
 
     finally:
         db.close()
