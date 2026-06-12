@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-from app.settings import settings
+from config.settings import settings
 
 engine = create_engine(settings.DATABASE_URL)
 
