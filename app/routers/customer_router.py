@@ -15,6 +15,15 @@ router = APIRouter()
 
 @router.get("/customers")
 def get_customers():
+    """_summary_
+
+    Raises:
+        HTTPException: _description_
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
+    """
 
     db = SessionLocal()
 
@@ -39,6 +48,19 @@ def get_customers():
 
 @router.get("/customers/{user_id}")
 def get_customer(user_id: str):
+    """_summary_
+
+    Args:
+        user_id (str): _description_
+
+    Raises:
+        HTTPException: _description_
+        HTTPException: _description_
+        HTTPException: _description_
+
+    Returns:
+        _type_: _description_
+    """
 
     db = SessionLocal()
 

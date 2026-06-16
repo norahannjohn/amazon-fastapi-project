@@ -12,10 +12,30 @@ from app.services.customer_service import (
 
 
 def get_customers_handler(db: Session):
+    """Retrieve all customers.
+
+    Args:
+        db (Session): Active SQLAlchemy database session.
+
+    Returns:
+        list: List of customer objects.
+    """
     return get_customers_service(db)
 
 
 def get_customer_handler(db: Session, user_id: str):
+    """Retrieve a customer by user ID.
+
+    Args:
+        db (Session): Active SQLAlchemy database session.
+        user_id (str):Unique identifier of the customer.
+
+    Raises:
+        ValueError: If the customer is not found.
+
+    Returns:
+        Customer: Customer object.
+    """
 
     customer = get_customer_service(db, user_id)
 
@@ -26,6 +46,18 @@ def get_customer_handler(db: Session, user_id: str):
 
 
 def get_customer_orders_handler(db: Session, user_id: str):
+    """Retrieve all orders placed by a customer.
+
+    Args:
+        db (Session): Active SQLAlchemy database session.
+        user_id (str):Unique identifier of the customer.
+
+    Raises:
+        ValueError: If the customer is not found.
+
+    Returns:
+       list: List of customer order details.
+    """
 
     customer = get_customer_orders_service(db, user_id)
 
@@ -52,6 +84,18 @@ def get_customer_orders_handler(db: Session, user_id: str):
 
 
 def get_customer_purchases_handler(db: Session, user_id: str):
+    """Retrieve a customer's purchase history.
+
+    Args:
+        db (Session): Active SQLAlchemy database session.
+        user_id (str):Unique identifier of the customer.
+
+    Raises:
+        ValueError: If the customer is not found.
+
+    Returns:
+        list: List of purchased product details.
+    """
 
     customer = get_customer_purchases_service(db, user_id)
 
@@ -78,6 +122,15 @@ def get_customer_purchases_handler(db: Session, user_id: str):
 
 
 def create_customer_handler(db: Session, customer: CustomerCreate):
+    """Create a new customer.
+
+    Args:
+        db (Session): Active SQLAlchemy database session.
+        customer (CustomerCreate): Customer data to be created.
+
+    Returns:
+        dict: Success message confirming customer creation.
+    """
 
     create_customer_service(db, customer)
 
