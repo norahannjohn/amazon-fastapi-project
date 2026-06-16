@@ -14,7 +14,15 @@ router = APIRouter()
 
 @router.get("/sellers")
 def get_sellers():
+    """
+    Retrieve a list of sellers.
 
+    Returns:
+        list: List of seller records.
+
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -38,7 +46,19 @@ def get_sellers():
 
 @router.get("/sellers/{seller_id}")
 def get_seller(seller_id: str):
+    """
+    Retrieve a seller by seller ID.
 
+    Args:
+        seller_id (str): Unique identifier of the seller.
+
+    Returns:
+        dict: Seller details.
+
+    Raises:
+        HTTPException: If the seller is not found.
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -68,7 +88,18 @@ def get_seller(seller_id: str):
 
 @router.post("/sellers", status_code=status.HTTP_201_CREATED)
 def create_seller(seller: SellerCreate):
+    """
+    Create a new seller.
 
+    Args:
+        seller (SellerCreate): Seller data to be created.
+
+    Returns:
+        dict: Success message confirming seller creation.
+
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:

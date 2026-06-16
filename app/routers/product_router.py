@@ -14,7 +14,15 @@ router = APIRouter()
 
 @router.get("/products")
 def get_products():
+    """
+    Retrieve a list of products.
 
+    Returns:
+        list: List of product records.
+
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -38,7 +46,19 @@ def get_products():
 
 @router.get("/products/{product_id}")
 def get_product(product_id: str):
+    """
+    Retrieve a product by product ID.
 
+    Args:
+        product_id (str): Unique identifier of the product.
+
+    Returns:
+        dict: Product details.
+
+    Raises:
+        HTTPException: If the product is not found.
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -68,7 +88,18 @@ def get_product(product_id: str):
 
 @router.post("/products", status_code=status.HTTP_201_CREATED)
 def create_product(product: ProductCreate):
+    """
+    Create a new product.
 
+    Args:
+        product (ProductCreate): Product data to be created.
+
+    Returns:
+        dict: Success message confirming product creation.
+
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:

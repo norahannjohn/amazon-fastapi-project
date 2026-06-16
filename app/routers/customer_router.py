@@ -15,16 +15,15 @@ router = APIRouter()
 
 @router.get("/customers")
 def get_customers():
-    """_summary_
-
-    Raises:
-        HTTPException: _description_
-        HTTPException: _description_
+    """
+    Retrieve a list of customers.
 
     Returns:
-        _type_: _description_
-    """
+        list: List of customer records.
 
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -48,18 +47,18 @@ def get_customers():
 
 @router.get("/customers/{user_id}")
 def get_customer(user_id: str):
-    """_summary_
+    """
+    Retrieve a customer by user ID.
 
     Args:
-        user_id (str): _description_
-
-    Raises:
-        HTTPException: _description_
-        HTTPException: _description_
-        HTTPException: _description_
+       user_id (str): Unique identifier of the customer.
 
     Returns:
-        _type_: _description_
+        dict: Customer details.
+
+    Raises:
+        HTTPException: If the customer is not found.
+        HTTPException: If an internal server error occurs.
     """
 
     db = SessionLocal()
@@ -91,7 +90,19 @@ def get_customer(user_id: str):
 
 @router.get("/customers/{user_id}/orders")
 def get_customer_orders(user_id: str):
+    """
+    Retrieve all orders placed by a customer.
 
+    Args:
+        user_id (str): Unique identifier of the customer.
+
+    Returns:
+        list: List of orders associated with the customer.
+
+    Raises:
+        HTTPException: If the customer is not found.
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -121,7 +132,19 @@ def get_customer_orders(user_id: str):
 
 @router.get("/customers/{user_id}/purchases")
 def get_customer_purchases(user_id: str):
+    """
+    Retrieve purchase details for a customer.
 
+    Args:
+        user_id (str): Unique identifier of the customer.
+
+    Returns:
+        list: List of purchased products and related order information.
+
+    Raises:
+        HTTPException: If the customer is not found.
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -151,7 +174,18 @@ def get_customer_purchases(user_id: str):
 
 @router.post("/customers", status_code=status.HTTP_201_CREATED)
 def create_customer(customer: CustomerCreate):
+    """
+    Create a new customer.
 
+    Args:
+        customer (CustomerCreate): Customer data to be created.
+
+    Returns:
+        dict: Success message confirming customer creation.
+
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:

@@ -14,7 +14,15 @@ router = APIRouter()
 
 @router.get("/orders")
 def get_orders():
+    """
+    Retrieve a list of orders.
 
+    Returns:
+        list: List of order records.
+
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -38,7 +46,19 @@ def get_orders():
 
 @router.get("/orders/{order_id}")
 def get_order(order_id: int):
+    """
+    Retrieve an order by order ID.
 
+    Args:
+        order_id (int): Unique identifier of the order.
+
+    Returns:
+        dict: Order details.
+
+    Raises:
+        HTTPException: If the order is not found.
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:
@@ -68,7 +88,18 @@ def get_order(order_id: int):
 
 @router.post("/orders", status_code=status.HTTP_201_CREATED)
 def create_order(order: OrderCreate):
+    """
+    Create a new order.
 
+    Args:
+        order (OrderCreate): Order data to be created.
+
+    Returns:
+        dict: Success message confirming order creation.
+
+    Raises:
+        HTTPException: If an internal server error occurs.
+    """
     db = SessionLocal()
 
     try:

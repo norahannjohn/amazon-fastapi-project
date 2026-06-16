@@ -5,7 +5,18 @@ from app.schemas import OrderCreate
 
 
 def get_orders(db: Session):
+    """
+    Retrieve a list of orders from the database.
 
+    Args:
+        db (Session): Active SQLAlchemy database session.
+
+    Returns:
+        list: List of order records.
+
+    Raises:
+        RuntimeError: If a database error occurs while fetching orders.
+    """
     try:
         return db.query(Order).limit(10).all()
 
@@ -14,7 +25,19 @@ def get_orders(db: Session):
 
 
 def get_order_by_id(db: Session, order_id: int):
+    """
+    Retrieve an order from the database by order ID.
 
+    Args:
+        db (Session): Active SQLAlchemy database session.
+        order_id (int): Unique identifier of the order.
+
+    Returns:
+        Order | None: Matching order record if found.
+
+    Raises:
+        RuntimeError: If a database error occurs while fetching the order.
+    """
     try:
         return db.query(Order).filter(Order.order_id == order_id).first()
 
@@ -23,7 +46,19 @@ def get_order_by_id(db: Session, order_id: int):
 
 
 def create_order(db: Session, order: OrderCreate):
+    """
+    Create a new order in the database.
 
+    Args:
+        db (Session): Active SQLAlchemy database session.
+        order (OrderCreate): Order data to be stored.
+
+    Returns:
+        Order: Newly created order record.
+
+    Raises:
+        RuntimeError: If a database error occurs while creating the order.
+    """
     try:
 
         new_order = Order(
